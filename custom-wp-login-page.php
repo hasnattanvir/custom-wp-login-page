@@ -35,7 +35,7 @@ function cwlpht_add_theme_page(){
  * Plugin option page style
  */
 function plg_theme_css(){
-    wp_enqueue_style('cwlpht_login_enque',plugins_url('assets/css/plg_theme_css.css', __FILE__ ),false,"1.0.0");
+    wp_enqueue_style('cwlpht_login_enque',plugins_url('assets/css/plg_theme.css', __FILE__ ),false,"1.0.0");
  }
  add_action('admin_enqueue_scripts','plg_theme_css');
 
@@ -45,7 +45,7 @@ add_action('admin_menu','cwlpht_add_theme_page');
 /**
  * plugin call back
  */
-function cwlpht_create_page(){ ?>
+function cwlpht_create_page() { ?>
     <div class="main_box">
         <div class="leftBox">
             <h3 id="title"><?php print esc_attr("Login Page Customizer"); ?></h3>
@@ -53,7 +53,7 @@ function cwlpht_create_page(){ ?>
             <form action="options.php" method="post" enctype="multipart/form-data">
                 <?php wp_nonce_field("update-options"); ?>
                 <!-- Primary Color -->
-                <div class="input_item">
+                <div class="input_item color_item">
                     <label for="cwlpht_pri_color">
                         <?php print esc_attr("Primary Color"); ?>
                     </label>
@@ -61,7 +61,7 @@ function cwlpht_create_page(){ ?>
                 </div>
 
                 <!-- Main Logo -->
-                <div class="input_item">
+                <div class="input_item logo_item">
                     <label for="cwlpht_main_logo">
                         <?php print esc_attr("Upload Your Logo"); ?>
                     </label>
@@ -69,7 +69,7 @@ function cwlpht_create_page(){ ?>
                 </div>
 
                 <!-- Background Image -->
-                <div class="input_item">
+                <div class="input_item bgimg_item">
                     <label for="cwlpht_bg_img">
                         <?php print esc_attr("Upload Your BG Image"); ?>
                     </label>
@@ -77,7 +77,7 @@ function cwlpht_create_page(){ ?>
                 </div>
 
                 <!-- Background Brightness -->
-                <div class="input_item">
+                <div class="input_item opacity_item">
                     <label for="cwlpht_bg_brightness">
                         <?php print esc_attr("Background Brightness"); ?>
                     </label>
@@ -91,23 +91,26 @@ function cwlpht_create_page(){ ?>
             </form>
         </div>
         <div class="rightBox">
-            <!-- Preview or additional content here -->
+            <h3 class="righttitle">Custom Admin Login</h3>
+            <p><b>info:</b> Lorem ipsum dolor sit amet consectetur adipisicing elit. Non, dolore aut nisi eius impedit eligendi est voluptatum corporis quam laudantium vero repudiandae, cupiditate iusto dolorem iure possimus quaerat consequuntur veniam?</p>
         </div>
     </div>
- <?php
- }
+<?php
+}
+
 
  function login_enqueue_register(){
     wp_enqueue_style('cwlpht_login_enque',plugins_url('assets/css/cwlpht_style.css', __FILE__ ),false,"1.0.0");
  }
  add_action('login_enqueue_scripts','login_enqueue_register');
 
+// logo change function
  function login_logo_change() {
     $primary_color = get_option('cwlpht_primary_color');
     $logo_url = get_option('cwlpht_main_logo');
     $bg_img_url = get_option('cwlpht_bg_img');
     $bg_brightness = get_option('cwlpht_bg_brightness');
-?>
+    ?>
     <style>
         #login h1 a, .login h1 a {
             background-image: url(<?php echo esc_url($logo_url); ?>);
@@ -119,12 +122,13 @@ function cwlpht_create_page(){ ?>
             opacity: <?php echo esc_attr($bg_brightness); ?> !important;
         }
         #loginform{
-            background-color: <?php echo $primary_color; ?>;
+            background-color: <?php echo esc_attr($primary_color); ?>;
         }
     </style>
 <?php
 }
 add_action('login_enqueue_scripts', 'login_logo_change');
+
 
 
 /**
@@ -146,8 +150,19 @@ function cwlpht_handle_file_upload() {
         $file = $_FILES['cwlpht_main_logo'];
         if (in_array($file['type'], $allowed_mime_types)) {
             $upload = wp_handle_upload($file, array('test_form' => false));
-            if (!isset($upload['error']) && isset($upload['url'])) {
-                update_option('cwlpht_main_logo', $upload['url']);
+            if (!isset($upload['error']) && isset($upload['file'])) {
+                $wp_filetype = wp_check_filetype($upload['file'], null);
+                $attachment = array(
+                    'post_mime_type' => $wp_filetype['type'],
+                    'post_title' => sanitize_file_name($file['name']),
+                    'post_content' => '',
+                    'post_status' => 'inherit'
+                );
+                $attachment_id = wp_insert_attachment($attachment, $upload['file']);
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                $attach_data = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+                wp_update_attachment_metadata($attachment_id, $attach_data);
+                update_option('cwlpht_main_logo', wp_get_attachment_url($attachment_id));
             }
         } else {
             add_settings_error('cwlpht_main_logo', 'invalid_file_type', 'Only JPG, JPEG, and PNG files are allowed for the logo.');
@@ -159,8 +174,19 @@ function cwlpht_handle_file_upload() {
         $file = $_FILES['cwlpht_bg_img'];
         if (in_array($file['type'], $allowed_mime_types)) {
             $upload = wp_handle_upload($file, array('test_form' => false));
-            if (!isset($upload['error']) && isset($upload['url'])) {
-                update_option('cwlpht_bg_img', $upload['url']);
+            if (!isset($upload['error']) && isset($upload['file'])) {
+                $wp_filetype = wp_check_filetype($upload['file'], null);
+                $attachment = array(
+                    'post_mime_type' => $wp_filetype['type'],
+                    'post_title' => sanitize_file_name($file['name']),
+                    'post_content' => '',
+                    'post_status' => 'inherit'
+                );
+                $attachment_id = wp_insert_attachment($attachment, $upload['file']);
+                require_once(ABSPATH . 'wp-admin/includes/image.php');
+                $attach_data = wp_generate_attachment_metadata($attachment_id, $upload['file']);
+                wp_update_attachment_metadata($attachment_id, $attach_data);
+                update_option('cwlpht_bg_img', wp_get_attachment_url($attachment_id));
             }
         } else {
             add_settings_error('cwlpht_bg_img', 'invalid_file_type', 'Only JPG, JPEG, and PNG files are allowed for the background image.');
@@ -176,6 +202,7 @@ function cwlpht_handle_file_upload() {
         update_option('cwlpht_bg_brightness', sanitize_text_field($_POST['cwlpht_bg_brightness']));
     }
 }
+
 
 
 

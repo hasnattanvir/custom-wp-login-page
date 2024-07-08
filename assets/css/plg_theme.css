@@ -1,0 +1,39 @@
+#title{
+    font-size: 20px;
+}
+.righttitle{
+    font-size: 20px;
+}
+.main_box{
+    display: flex;
+    flex-wrap: wrap;
+}
+.leftBox{
+   width: 60%; 
+}
+.rightBox{
+    width: 40%;
+}
+.input_item{
+    padding: 15px 0px;
+}
+.input_item label{
+ font-size: 18px;
+ color: #000;
+ padding-bottom:5px;
+ display: block;
+}
+.color_item input{
+    width: 100px;
+    height: 60px;
+}
+
+.logo_item input{
+    border: 1px solid green;
+    padding: 10px!important;
+}
+
+.bgimg_item input{
+    border: 1px solid green;
+    padding: 10px!important;
+}
